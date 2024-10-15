@@ -1,0 +1,87 @@
+import java.util.*;
+
+class Graph {
+    private final Map<String, List<Edge>> adjacencyList;
+
+    public Graph() {
+        adjacencyList = new HashMap<>();
+    }
+
+    public void addVertex(String vertex) {
+        adjacencyList.putIfAbsent(vertex, new ArrayList<>());
+    }
+
+    public void addEdge(String source, String destination, int weight) {
+        adjacencyList.get(source).add(new Edge(destination, weight));
+    }
+
+    public Map<String, Integer> dijkstra(String startVertex) {
+        Map<String, Integer> distances = new HashMap<>();
+        PriorityQueue<VertexDistance> pq = new PriorityQueue<>(Comparator.comparingInt(v -> v.distance));
+        Set<String> visited = new HashSet<>();
+
+        for (String vertex : adjacencyList.keySet()) {
+            distances.put(vertex, Integer.MAX_VALUE);
+        }
+        distances.put(startVertex, 0);
+        pq.add(new VertexDistance(startVertex, 0));
+
+        while (!pq.isEmpty()) {
+            VertexDistance current = pq.poll();
+            if (visited.contains(current.vertex)) continue;
+            visited.add(current.vertex);
+
+            for (Edge edge : adjacencyList.getOrDefault(current.vertex, new ArrayList<>())) {
+                if (visited.contains(edge.destination)) continue;
+
+                int newDist = distances.get(current.vertex) + edge.weight;
+                if (newDist < distances.get(edge.destination)) {
+                    distances.put(edge.destination, newDist);
+                    pq.add(new VertexDistance(edge.destination, newDist));
+                }
+            }
+        }
+
+        return distances;
+    }
+
+    static class Edge {
+        String destination;
+        int weight;
+
+        public Edge(String destination, int weight) {
+            this.destination = destination;
+            this.weight = weight;
+        }
+    }
+
+    static class VertexDistance {
+        String vertex;
+        int distance;
+
+        public VertexDistance(String vertex, int distance) {
+            this.vertex = vertex;
+            this.distance = distance;
+        }
+    }
+
+    public static void main(String[] args) {
+        Graph graph = new Graph();
+
+        graph.addVertex("A");
+        graph.addVertex("B");
+        graph.addVertex("C");
+        graph.addVertex("D");
+        graph.addVertex("E");
+
+        graph.addEdge("A", "B", 5);
+        graph.addEdge("A", "C", 1);
+        graph.addEdge("B", "D", 2);
+        graph.addEdge("C", "B", 2);
+        graph.addEdge("C", "D", 8);
+        graph.addEdge("D", "E", 6);
+        graph.addEdge("C", "E", 3);
+
+        System.out.println("Shortest paths from A: " + graph.dijkstra("A"));
+    }
+}
